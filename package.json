@@ -1,0 +1,15 @@
+{
+  "name": "mouse_overlays",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node -e \"const fs = require('fs'); const d = '../testVault/apps/mouse_overlays/'; fs.rmSync(d, { recursive: true, force: true }); fs.cpSync('src', d, { recursive: true });\"",
+    "build": "node -e \"const fs = require('fs'); const d = '../UUinsome/apps/mouse_overlays/'; fs.rmSync(d, { recursive: true, force: true }); fs.cpSync('src', d, { recursive: true });\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
