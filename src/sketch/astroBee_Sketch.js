@@ -36,7 +36,7 @@ let targetYaw = 0;
  */
 function preload() {
   // Loading the OBJ model
-  beeModel = loadModel('models/bee.obj', true);
+  beeModel = loadModel('models/bee3.obj', true);
 }
 
 /**
