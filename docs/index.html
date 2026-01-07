@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Overlays Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; color: #333; }
+        .hero { background: linear-gradient(135deg, #007acc 0%, #004a7c 100%); color: white; padding: 4rem 0; margin-bottom: 2rem; }
+        .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .nav-link.active { font-weight: bold; border-bottom: 2px solid #007acc; }
+        pre { background: #212529; color: #f8f9fa; padding: 1rem; border-radius: 8px; }
+        code { color: #e83e8c; }
+        .api-badge { font-size: 0.8em; padding: 0.3em 0.6em; border-radius: 4px; background: #007acc; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold">Mouse Overlays</h1>
+        <p class="lead">High-performance OBS browser source overlays driven by system-wide events.</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="list-group sticky-top" style="top: 20px;">
+                <a href="#architecture" class="list-group-item list-group-item-action">Architecture</a>
+                <a href="#input-messages" class="list-group-item list-group-item-action">Input Messages (API)</a>
+                <a href="#overlays" class="list-group-item list-group-item-action">Overlay Gallery</a>
+                <a href="#development" class="list-group-item list-group-item-action">Developer Guide</a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <section id="architecture" class="mb-5">
+                <h2 class="border-bottom pb-2">Architecture</h2>
+                <p>This project uses a <strong>decentralized broadcast architecture</strong>. Instead of a central server, events are propagated through the browser environment using the <code>BroadcastChannel API</code>.</p>
+                <div class="alert alert-info">
+                    <strong>Note:</strong> <code>example_output</code> acts as an external event provider (broadcaster), while the files in <code>/src</code> act as listeners (overlays).
+                </div>
+                <p>All overlays in this project automatically remap global desktop coordinates to their local viewport using the <code>desktop_bounds</code> broadcast, ensuring pixel-perfect alignment regardless of your OBS canvas size.</p>
+            </section>
+
+            <section id="input-messages" class="mb-5">
+                <h2 class="border-bottom pb-2">Input Messages (External API)</h2>
+                <p>The following messages are expected from external providers (e.g., Python scripts or the <code>example_output</code> monitor tools):</p>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><code>mouse_move</code> <span class="api-badge">BroadcastChannel</span></h5>
+                        <p class="card-text">Triggered on every cursor movement.</p>
+                        <pre><code>{
+  "x": number, // Desktop X coordinate
+  "y": number  // Desktop Y coordinate
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><code>mouse_click</code> <span class="api-badge">BroadcastChannel</span></h5>
+                        <p class="card-text">Triggered on mouse button press/release.</p>
+                        <pre><code>{
+  "button": "MB1" | "MB2" | "MB3",
+  "pressed": boolean,
+  "x": number,
+  "y": number
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><code>keyboard_event</code> <span class="api-badge">BroadcastChannel</span></h5>
+                        <p class="card-text">Triggered on key presses.</p>
+                        <pre><code>{
+  "key": string // e.g. "a", "+", "-", "Shift"
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><code>desktop_bounds</code> <span class="api-badge">BroadcastChannel</span></h5>
+                        <p class="card-text">Used to sync monitor dimensions for remapping.</p>
+                        <pre><code>{
+  "minX": number,
+  "maxX": number,
+  "minY": number,
+  "maxY": number
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="overlays" class="mb-5">
+                <h2 class="border-bottom pb-2">Overlay Gallery</h2>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Astro Bee (3D)</h5>
+                                <p class="card-text">A p5.js sketch rendering a 3D robot that floats in zero-gravity. It follows the mouse and reacts to clicks by spinning.</p>
+                                <p class="text-muted small">Path: <code>src/astro_bee.html</code></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Fluid Simulation</h5>
+                                <p class="card-text">A high-performance WebGL fluid simulation made with Cables.gl. Creates ripples and flow highlights around the cursor.</p>
+                                <p class="text-muted small">Path: <code>src/cables_flow_highlight.html</code></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Sparkly Magic Wand</h5>
+                                <p class="card-text">A particle-based trail effect. Generates stars that follow the mouse and burst upon clicking.</p>
+                                <p class="text-muted small">Path: <code>src/p5_magicWand.html</code></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="api-reference" class="mb-5">
+                <h2 class="border-bottom pb-2">Technical API Reference</h2>
+                <p>Detailed documentation for the internal logic of the <code>/src</code> components.</p>
+                
+                <h4 class="mt-4">Astro Bee (<code>astroBee_Sketch.js</code>)</h4>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>beeModel</code></td>
+                            <td><code>p5.Geometry</code></td>
+                            <td>The 3D model instance loaded from <code>bee.obj</code>.</td>
+                        </tr>
+                        <tr>
+                            <td><code>targetX / Y</code></td>
+                            <td><code>number</code></td>
+                            <td>The mouse position in 3D space coordinates.</td>
+                        </tr>
+                        <tr>
+                            <td><code>zoom</code></td>
+                            <td><code>number</code></td>
+                            <td>Current scale factor (interpolated).</td>
+                        </tr>
+                        <tr>
+                            <td><code>triggerClickEffect()</code></td>
+                            <td><code>function</code></td>
+                            <td>Triggers a random rotation burst.</td>
+                        </tr>
+                        <tr>
+                            <td><code>updateZoom(delta)</code></td>
+                            <td><code>function</code></td>
+                            <td>Increments or decrements the target scale.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 class="mt-4">Magic Wand (<code>Star</code> Class)</h4>
+                <p>The <code>Star</code> class manages individual particle simulations.</p>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>update()</code></td>
+                            <td>Calculates physics (acceleration, velocity, position) and decrements life.</td>
+                        </tr>
+                        <tr>
+                            <td><code>display()</code></td>
+                            <td>Renders the star with a <code>shadowBlur</code> effect for a "glowing" look.</td>
+                        </tr>
+                        <tr>
+                            <td><code>finished()</code></td>
+                            <td>Returns true when <code>life < 0</code>.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="development" class="mb-5">
+                <h2 class="border-bottom pb-2">Developer Guide</h2>
+                <p>The code in <code>/src</code> is organized into:</p>
+                <ul>
+                    <li><strong>HTML Wrappers:</strong> Handle the <code>BroadcastChannel</code> boilerplate and coordinate remapping.</li>
+                    <li><strong>Sketches (<code>src/sketch/</code>):</strong> Contain the visual logic (p5.js).</li>
+                    <li><strong>Patches (<code>src/patches/</code>):</strong> Contain exported Cables.gl WebGL simulations.</li>
+                </ul>
+                <p>To create a new overlay, copy the listener logic from <code>src/astro_bee.html</code> and integrate your own rendering loop.</p>
+            </section>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container text-center">
+        <p class="mb-0">Mouse Overlays Documentation &copy; 2026</p>
+        <p class="small text-muted">Generated for GitHub Pages</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,3 +1,7 @@
+/**
+ * @file 2dFish_patch.js
+ * @description Cables.gl patch export for the 2D Fish simulation.
+ */
 var CABLES;
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";

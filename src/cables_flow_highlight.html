@@ -48,27 +48,47 @@
     <!-- <script src="lib/SCRIPT_FOR_THIS_Page.js"></script> -->
   
     <script>
-        let viewMode, mouseBoundary;
+        /** @type {string} Current view mode */
+        let viewMode;
+        /** @type {Object} Mouse boundary definitions */
+        let mouseBoundary;
         let inMinX, inMaxX;
         let inMinY, inMaxY;
-        let mousePosX = 0, mousePosY = 0;
+        
+        /** @type {number} Remapped mouse X position */
+        let mousePosX = 0;
+        /** @type {number} Remapped mouse Y position */
+        let mousePosY = 0;
+        
         let mouseOffsetX = 0;
         let mouseOffsetY = 0;
         
+        /** @type {number} Minimum X coordinate of the desktop */
         let displayXmin = 0;
+        /** @type {number} Maximum X coordinate of the desktop */
         let displayXmax = 1920;
+        /** @type {number} Minimum Y coordinate of the desktop */
         let displayYmin = 0;
+        /** @type {number} Maximum Y coordinate of the desktop */
         let displayYmax = 1080;
 
         const mouseChannel = new BroadcastChannel('mouse_move');
         const desktopBoundsChannel = new BroadcastChannel('desktop_bounds');
 
+        /**
+         * Remaps a number from one range to another.
+         * @param {number} n - Input value.
+         * @param {number} start1 - Source range start.
+         * @param {number} stop1 - Source range end.
+         * @param {number} start2 - Target range start.
+         * @param {number} stop2 - Target range end.
+         * @returns {number} Remapped value.
+         */
         function remap(n, start1, stop1, start2, stop2) {
             return (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
         }
 
         desktopBoundsChannel.onmessage = (event) => {
-            console.log("hi")
             if(event.data && typeof event.data.minX !== 'undefined') {
                 displayXmin = event.data.minX;
                 displayXmax = event.data.maxX;
@@ -77,39 +97,42 @@
             }
         };
 
-        // Request bounds
+        // Request current desktop bounds from any active monitor process
         desktopBoundsChannel.postMessage('request_bounds');
 
+        /**
+         * Handles incoming mouse movements. 
+         * Remaps the coordinates and updates the Cables.gl patch variables.
+         */
         mouseChannel.onmessage = (event) => {
-            //console.log(event.data)
             const { x, y } = event.data;
             
             mousePosX = Math.round(remap(x, displayXmin, displayXmax, 0, window.innerWidth));
             mousePosY = Math.round(remap(y, displayYmin, displayYmax, 0, window.innerHeight));
 
             if (typeof CABLES !== 'undefined' && CABLES.patch) {
-                // get the current value
+                // Update internal Cables variables to drive the simulation
                 const varMouseX = CABLES.patch.getVar("MouseInX");
                 const varMouseY = CABLES.patch.getVar("MouseInY");
                 if (varMouseX && varMouseY) {
                     const currentValueX = varMouseX.getValue();
                     const currentValueY = varMouseY.getValue();
 
-                    //get previous value variables
                     const varPreviousMouseX = CABLES.patch.getVar("prevMousePosX");
                     const varPreviousMouseY = CABLES.patch.getVar("prevMousePosY");
 
-                    //
                     const varMouseMoving = CABLES.patch.getVar("MouseMoving");
                     const varMouseDrag = CABLES.patch.getVar("MouseIsDragged");
+                    
                     if(varMouseMoving) varMouseMoving.setValue(1);
                     if(varMouseDrag) varMouseDrag.setValue(1);
 
-                    // change the value
                     varMouseX.setValue(Number(mousePosX));
                     varMouseY.setValue(Number(mousePosY));
                     if(varPreviousMouseX) varPreviousMouseX.setValue(currentValueX);
                     if(varPreviousMouseY) varPreviousMouseY.setValue(currentValueY);
+                    
+                    // Reset moving flags
                     if(varMouseMoving) varMouseMoving.setValue(0);
                     if(varMouseDrag) varMouseDrag.setValue(1);
                 }
