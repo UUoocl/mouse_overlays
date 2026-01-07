@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Ext-Trigger_Fast Fluid Simulation</title>
+    <title>Ext-Trigger_Fast_Fluid_Simulation no drag</title>
     <style>
         body {
             margin: 0;
-            background-color: #cf161600;
+            background-color: #000;
             color: #fff;
             font-family: Helvetica, Arial, sans-serif;
             overflow: hidden; /* disable scrolling / rubberband effect on mobile */
@@ -14,11 +14,7 @@
 
         canvas {
             display: block;
-            /* position: absolute; */
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: absolute;
             outline:0;
         }
 
@@ -36,54 +32,31 @@
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
-    <meta itemprop="name" content="Ext-Trigger_Fast Fluid Simulation">
+    <meta itemprop="name" content="Ext-Trigger_Fast Fluid Simulation no drag">
     <meta itemprop="description" content="made with cables">
     <meta itemprop="image" content="screenshot.png">
     <meta name="description" content="made with cables"/>
 
 </head>
 <body>
-    <canvas id="glcanvas" tabindex="1"></canvas>
+    <canvas id="glcanvas" width="100vw" height="100vh" tabindex="1"></canvas>
 
-    <!-- <script src="lib/SCRIPT_FOR_THIS_Page.js"></script> -->
-  
-    <script>
-        /** @type {string} Current view mode */
-        let viewMode;
-        /** @type {Object} Mouse boundary definitions */
-        let mouseBoundary;
+        <script>
+        let viewMode, mouseBoundary;
         let inMinX, inMaxX;
         let inMinY, inMaxY;
-        
-        /** @type {number} Remapped mouse X position */
-        let mousePosX = 0;
-        /** @type {number} Remapped mouse Y position */
-        let mousePosY = 0;
-        
+        let mousePosX = 0, mousePosY = 0;
         let mouseOffsetX = 0;
         let mouseOffsetY = 0;
         
-        /** @type {number} Minimum X coordinate of the desktop */
         let displayXmin = 0;
-        /** @type {number} Maximum X coordinate of the desktop */
-        let displayXmax = 1920;
-        /** @type {number} Minimum Y coordinate of the desktop */
+        let displayXmax = 1512;
         let displayYmin = 0;
-        /** @type {number} Maximum Y coordinate of the desktop */
-        let displayYmax = 1080;
+        let displayYmax = 945;
 
         const mouseChannel = new BroadcastChannel('mouse_move');
         const desktopBoundsChannel = new BroadcastChannel('desktop_bounds');
 
-        /**
-         * Remaps a number from one range to another.
-         * @param {number} n - Input value.
-         * @param {number} start1 - Source range start.
-         * @param {number} stop1 - Source range end.
-         * @param {number} start2 - Target range start.
-         * @param {number} stop2 - Target range end.
-         * @returns {number} Remapped value.
-         */
         function remap(n, start1, stop1, start2, stop2) {
             return (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
         }
@@ -97,59 +70,48 @@
             }
         };
 
-        // Request current desktop bounds from any active monitor process
+        // Request bounds
         desktopBoundsChannel.postMessage('request_bounds');
 
-        /**
-         * Handles incoming mouse movements. 
-         * Remaps the coordinates and updates the Cables.gl patch variables.
-         */
         mouseChannel.onmessage = (event) => {
+            //console.log(event.data)
             const { x, y } = event.data;
             
-            mousePosX = Math.round(remap(x, displayXmin, displayXmax, 0, window.innerWidth));
-            mousePosY = Math.round(remap(y, displayYmin, displayYmax, 0, window.innerHeight));
+            //console.log(x, displayXmin, displayXmax, 0, window.innerWidth)
+            mousePosX = Math.round(x);
+            //mousePosX = Math.round(remap(x, displayXmin, displayXmax, 0, window.innerWidth));
+            mousePosY = Math.round(y);
+            // mousePosY = Math.round(remap(y, displayYmin, displayYmax, 0, window.innerHeight));
 
             if (typeof CABLES !== 'undefined' && CABLES.patch) {
-                // Update internal Cables variables to drive the simulation
+                // get the current value
                 const varMouseX = CABLES.patch.getVar("MouseInX");
                 const varMouseY = CABLES.patch.getVar("MouseInY");
                 if (varMouseX && varMouseY) {
                     const currentValueX = varMouseX.getValue();
                     const currentValueY = varMouseY.getValue();
 
+                    //get previous value variables
                     const varPreviousMouseX = CABLES.patch.getVar("prevMousePosX");
                     const varPreviousMouseY = CABLES.patch.getVar("prevMousePosY");
 
+                    //
                     const varMouseMoving = CABLES.patch.getVar("MouseMoving");
                     const varMouseDrag = CABLES.patch.getVar("MouseIsDragged");
-                    
                     if(varMouseMoving) varMouseMoving.setValue(1);
                     if(varMouseDrag) varMouseDrag.setValue(1);
 
+                    // change the value
                     varMouseX.setValue(Number(mousePosX));
                     varMouseY.setValue(Number(mousePosY));
                     if(varPreviousMouseX) varPreviousMouseX.setValue(currentValueX);
                     if(varPreviousMouseY) varPreviousMouseY.setValue(currentValueY);
-                    
-                    // Reset moving flags
                     if(varMouseMoving) varMouseMoving.setValue(0);
                     if(varMouseDrag) varMouseDrag.setValue(1);
                 }
             }
         };
         
-        window.addEventListener("load", (event) => {
-        //wait for obs to add the css variables
-        //setTimeout(()=>{
-          //  mouseOffsetX = Number(getComputedStyle(document.body).getPropertyValue('--mouse-offset-x'));
-            //mouseOffsetY = Number(getComputedStyle(document.body).getPropertyValue('--mouse-offset-y'))
-            // console.log(`mouseOffsetX: ${mouseOffsetX}, mouseOffsetY: ${mouseOffsetY}`);
-        //}, 100);
-        });
-
-      
-  
         window.addEventListener(`mouseBoundary`, async function (event) {
         //event wss details
         console.log("message received: ", event)
@@ -183,58 +145,65 @@
         };
     
     </script>
-
-    <script type="text/javascript"  src="patches/patch.js"></script>
-
+    
+    <script type="text/javascript" src="patches/Fast_Fluid_Simulation.js" async></script>
+    
 
     <script type="text/javascript">
 
-        function showError(errId, errMsg)
+        function showError(initiator,...args)
         {
-            // handle critical errors here if needed
+            CABLES.logErrorConsole("[" + initiator + "]", ...args);
         }
 
         function patchInitialized(patch)
         {
             // You can now access the patch object (patch), register variable watchers and so on
-            // resize(patch);
         }
 
         function patchFinishedLoading(patch)
         {
             // The patch is ready now, all assets have been loaded
-            // resize(patch);
+            //set canvas size
+            const varCanvasWidth = CABLES.patch.getVar("ColorWidth");
+            const varCanvasHeight = CABLES.patch.getVar("ColorHeight");
+            varCanvasWidth.setValue(640);
+
+            //calculate height
+            const monitorWidth = (Math.abs(displayXmin)+Math.abs(displayXmax));
+            const monitorHeight = (Math.abs(displayYmin)+Math.abs(displayYmax));
+            
+            const ratio = monitorHeight/monitorWidth;
+            console.log(monitorWidth, monitorHeight, ratio)
+            console.log(640 + (640 * ratio), (640 * ratio))
+            varCanvasHeight.setValue(640 * ratio);
+            
+            //set map parameters for map op
+            const monitorsXmin = CABLES.patch.getVar("monitorsXmin")
+            const monitorsXmax = CABLES.patch.getVar("monitorsXmax")
+            const monitorsYmin = CABLES.patch.getVar("monitorsYmin")
+            const monitorsYmax = CABLES.patch.getVar("monitorsYmax")
+            monitorsXmin.setValue(displayXmin);
+            monitorsXmax.setValue(displayXmax);
+            monitorsYmin.setValue(displayYmin);
+            monitorsYmax.setValue(displayYmax);
+            console.log(varCanvasWidth, varCanvasHeight);
+            console.log(CABLES.patch.getVar("ColorWidth"), CABLES.patch.getVar("ColorHeight"))
         }
-
-        // function resize(patch) {
-        //     const p = patch || (typeof CABLES !== 'undefined' && CABLES.patch);
-        //     if (p && p.setVarValue) {
-        //         const w = window.innerWidth;
-        //         const h = window.innerHeight;
-        //         p.setVarValue("ColorWidth", w);
-        //         p.setVarValue("ColorHeight", h);
-        //         p.setVarValue("AspectRatio", w / h);
-        //         if (p.cgl) p.cgl.updateSize();
-        //     }
-        // }
-
-        window.addEventListener('resize', () => {
-            //resize();
-        });
 
         document.addEventListener("CABLES.jsLoaded", function (event)
         {
             CABLES.patch = new CABLES.Patch({
-                patch: CABLES.exportedPatch,
-                "prefixAssetPath": "",
-                "assetPath": "assets/",
-                "jsPath": "patches/",
-                "glCanvasId": "glcanvas",
-                "glCanvasResizeToWindow": true,
-                "onError": showError,
-                "onPatchLoaded": patchInitialized,
-                "onFinishedLoading": patchFinishedLoading,
-                "canvas": {"alpha":true, "premultipliedAlpha":true } // make canvas transparent
+            patch: CABLES.exportedPatch,
+            "prefixAssetPath": "",
+            "assetPath": "assets/",
+            "jsPath": "patches/",
+            "glCanvasId": "glcanvas",
+            "glCanvasResizeToWindow": true,
+            "onError": showError,
+            "onPatchLoaded": patchInitialized,
+            "onFinishedLoading": patchFinishedLoading,
+            "canvas": {"alpha":true, "premultipliedAlpha":true } // make canvas transparent
             });
         });
 
